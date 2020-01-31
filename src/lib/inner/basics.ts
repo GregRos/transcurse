@@ -1,4 +1,5 @@
 import {TranscurseError} from "./errors";
+import {Writable} from "stream";
 
 /**
  * An object used to control the transformation, such as by moving to the next step.
@@ -20,7 +21,13 @@ export interface TranscurseControl<TIn = any, TOut = any> {
 	 * Invokes the next step of the transformation, with `value` as a target.
 	 * @param value The value to transform.
 	 */
-    next(value: TIn): TOut;
+    next(value?: TIn): TOut;
+
+    /**
+     * Whether this is the last transformation step, with the next step being
+     * the defualt identity transformation.
+     */
+    readonly isLast: boolean;
 }
 
 /**
@@ -41,25 +48,38 @@ export interface TranscurseFunction<TIn = any, TOut = any> {
     (input: TIn): TOut;
 }
 
+
+
+type Writeable<T> = { -readonly [P in keyof T]: T[P] };
+
+function wrapStep(step: TranscurseStep, prevNext: any, isLast: boolean) {
+    return function(this: TranscurseControl, value?: any) {
+        if (arguments.length === 0) {
+            value = this.val;
+        }
+        this.next = prevNext;
+        const writable = this as Writeable<TranscurseControl>;
+        writable.val = value;
+        writable.isLast = isLast;
+        const blah = step(this);
+        return blah;
+    };
+}
+
+export const idStep: TranscurseStep = wrapStep(c => {
+    return c.val;
+}, null, true);
+
 function compile(steps: TranscurseStep[]): TranscurseFunction {
-    if (steps.length === 0) return x => x;
-    let curSkip = null as (this: TranscurseControl, value: any) => any;
+    let curSkip = idStep;
     for (let i = 0; i < steps.length; i++) {
-        let z = i;
-        let lastNext = curSkip;
-        curSkip = function(this: TranscurseControl, value: any) {
-            let step = steps[z];
-            this.next = lastNext;
-            (this as any).val = value;
-            return step(this);
-        };
+        curSkip = wrapStep(steps[i], curSkip, i === 0);
     }
     let firstSkip = curSkip;
 
     let createTransformCtx = (set: Set<any>) => {
         return {
             recurse(obj) {
-
                 if (set.has(obj)) {
                     throw new TranscurseError("Transformation has tried to do circular recursion.");
                 }
@@ -74,14 +94,16 @@ function compile(steps: TranscurseStep[]): TranscurseFunction {
             next(x) {
                 return firstSkip.call(this, x);
             },
-            val: null
+            val: null,
+            isLast: false
         } as TranscurseControl;
 
     };
 
     return x => {
         let ctx = createTransformCtx(new Set([x]));
-        return ctx.next(x);
+        let blah = ctx.next(x);
+        return blah;
     };
 }
 
@@ -112,7 +134,7 @@ export class Transformation<TIn = any, TOut = any> {
      * `steps` will be applied in immediately before `this`, with decreasing precedence, from right to left.
      * @param steps
      */
-    and(...steps: LikeTranscurseStep<TIn, TOut>[]): Transformation<TIn, TOut> {
+    step(...steps: LikeTranscurseStep<TIn, TOut>[]): Transformation<TIn, TOut> {
         if (steps.length === 0) return this;
         return new Transformation([...this._steps, ...steps.reverse()]);
     }

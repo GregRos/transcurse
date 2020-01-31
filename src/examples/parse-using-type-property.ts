@@ -8,7 +8,7 @@ class ExampleObject {
     testProperty = 52;
 }
 
-export const transform = transformation(c => {
+export const exampleTransform = transformation(c => {
     if (c.val.type === "number") {
         return c.val.num;
     }

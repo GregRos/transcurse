@@ -1,6 +1,6 @@
 import test from "ava";
-import {transformation} from "../lib";
-import {TranscurseError, Transformation} from "../lib";
+import {transformation} from "../../lib";
+import {TranscurseError, Transformation} from "../../lib";
 test("empty transcurse", t => {
     const freshEmpty = new Transformation();
     t.is(freshEmpty.apply(500), 500);
@@ -17,10 +17,16 @@ test("single simple transform", t => {
    t.is(single.apply(5), 1);
 });
 
-test("single transform next == null", t => {
+test("fallback transform is identity", t => {
+    const single = transformation(c => c.next(c.val));
+    t.is(single.apply(5), 5);
+    t.is(single.apply(""), "");
+});
+
+test("single transform has isLast == true", t => {
     t.plan(3);
     const single = transformation(c => {
-        t.is(c.next, null);
+        t.is(c.isLast, true);
         t.assert(typeof c.recurse === "function");
         return 1;
     });
@@ -49,10 +55,41 @@ test("double transform", t => {
     t.is(double.apply(8), 10);
 });
 
+test("double transform changes isLast", t => {
+    t.plan(4);
+    const double = transformation(c => {
+        t.false(c.isLast);
+        return c.next(c.val);
+    }, c => {
+        t.true(c.isLast);
+        t.is(c.val, 8);
+        return 10;
+    });
+    t.is(double.apply(8), 10);
+});
+
+test("c.next() - works", t => {
+    const double = transformation(c => {
+        return c.next();
+    }, c => c.val);
+
+    t.is(double.apply(5), 5);
+});
+
+test("c.next(undefined) - isn't the same as c.next()", t => {
+    const double = transformation(c => {
+        return c.next(undefined);
+    }, c => c.val);
+
+    t.is(double.apply(5), undefined);
+});
+
 test("double transform recurse", t => {
     const double = transformation(c => {
+        t.false(c.isLast);
         return c.next(`${c.val}a`);
     }, c => {
+        t.true(c.isLast);
         if (c.val.length < 3) return c.recurse(`${c.val}b`);
         return c.val;
     });
@@ -100,7 +137,7 @@ test("context object remains the same", t => {
 
 test("add adds steps in reverse precedence", t => {
     let empty = transformation();
-    let double = empty.and(
+    let double = empty.step(
         c => c.next(c.val + 1),
         c => c.val
     );
@@ -109,7 +146,7 @@ test("add adds steps in reverse precedence", t => {
 
 test("empty and is idempotent", t => {
     let empty = transformation();
-    t.is(empty, empty.and());
+    t.is(empty, empty.step());
 });
 
 test("catches non-function argument", t => {
