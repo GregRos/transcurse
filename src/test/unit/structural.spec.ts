@@ -1,8 +1,8 @@
 import test from "ava";
-import {Transforms} from "../../lib";
+import {Transcurses} from "../../lib";
 import { isObjectLike } from "lodash";
 
-const structural = Transforms.structural;
+const structural = Transcurses.structural;
 test("scalars", t => {
     const my = structural.step(c => c.next(c.val));
     t.is(my.apply(5), 5);

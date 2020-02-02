@@ -1,31 +1,31 @@
 import test from "ava";
-import {transformation} from "../../lib";
-import {TranscurseError, Transformation} from "../../lib";
+import {transcurse} from "../../lib";
+import {TranscurseError, Transcurse} from "../../lib";
 test("empty transcurse", t => {
-    const freshEmpty = new Transformation();
+    const freshEmpty = new Transcurse();
     t.is(freshEmpty.apply(500), 500);
 });
 
 test("empty() function", t => {
-    const zero = transformation();
+    const zero = transcurse();
     t.is(zero.apply(500), 500);
 });
 
 test("single simple transform", t => {
-   const single = transformation(x => 1);
+   const single = transcurse(x => 1);
    t.is(single.apply(5), 1);
    t.is(single.apply(5), 1);
 });
 
 test("fallback transform is identity", t => {
-    const single = transformation(c => c.next(c.val));
+    const single = transcurse(c => c.next(c.val));
     t.is(single.apply(5), 5);
     t.is(single.apply(""), "");
 });
 
 test("single transform has isLast == true", t => {
     t.plan(3);
-    const single = transformation(c => {
+    const single = transcurse(c => {
         t.is(c.isLast, true);
         t.assert(typeof c.recurse === "function");
         return 1;
@@ -35,7 +35,7 @@ test("single transform has isLast == true", t => {
 
 test("single transform recurse", t => {
     t.plan(3);
-    const single = transformation(c => {
+    const single = transcurse(c => {
         t.pass();
         if (c.val === 5) return 9;
         return c.recurse(5);
@@ -46,7 +46,7 @@ test("single transform recurse", t => {
 
 test("double transform", t => {
     t.plan(2);
-    const double = transformation(c => {
+    const double = transcurse(c => {
         return c.next(c.val);
     }, c => {
         t.is(c.val, 8);
@@ -57,7 +57,7 @@ test("double transform", t => {
 
 test("double transform changes isLast", t => {
     t.plan(4);
-    const double = transformation(c => {
+    const double = transcurse(c => {
         t.false(c.isLast);
         return c.next(c.val);
     }, c => {
@@ -69,7 +69,7 @@ test("double transform changes isLast", t => {
 });
 
 test("c.next() - works", t => {
-    const double = transformation(c => {
+    const double = transcurse(c => {
         return c.next();
     }, c => c.val);
 
@@ -77,7 +77,7 @@ test("c.next() - works", t => {
 });
 
 test("c.next(undefined) - isn't the same as c.next()", t => {
-    const double = transformation(c => {
+    const double = transcurse(c => {
         return c.next(undefined);
     }, c => c.val);
 
@@ -85,7 +85,7 @@ test("c.next(undefined) - isn't the same as c.next()", t => {
 });
 
 test("double transform recurse", t => {
-    const double = transformation(c => {
+    const double = transcurse(c => {
         t.false(c.isLast);
         return c.next(`${c.val}a`);
     }, c => {
@@ -98,7 +98,7 @@ test("double transform recurse", t => {
 
 test("recursion into identical value errors", t => {
     let count = 0;
-    const single = transformation(c => {
+    const single = transcurse(c => {
         count++;
         return c.recurse(c.val);
     });
@@ -109,7 +109,7 @@ test("recursion into identical value errors", t => {
 
 test("recursion into identical value errors deeper", t => {
     let count = 0;
-    let single = transformation(c => {
+    let single = transcurse(c => {
         count++;
         if (c.val === 4) return c.recurse(c.val / 2);
         return c.recurse(c.val + 1);
@@ -121,7 +121,7 @@ test("recursion into identical value errors deeper", t => {
 
 test("context object remains the same", t => {
     let ctxts = [[], []];
-    let single = transformation(c => {
+    let single = transcurse(c => {
         ctxts[c.val].push(ctxts);
         return c.next(c.val);
     }, c => {
@@ -136,7 +136,7 @@ test("context object remains the same", t => {
 });
 
 test("add adds steps in reverse precedence", t => {
-    let empty = transformation();
+    let empty = transcurse();
     let double = empty.step(
         c => c.next(c.val + 1),
         c => c.val
@@ -145,22 +145,22 @@ test("add adds steps in reverse precedence", t => {
 });
 
 test("empty and is idempotent", t => {
-    let empty = transformation();
+    let empty = transcurse();
     t.is(empty, empty.step());
 });
 
 test("catches non-function argument", t => {
-    let err = t.throws(() => transformation(100 as any));
+    let err = t.throws(() => transcurse(100 as any));
     t.true(err instanceof TranscurseError);
 
-    err = t.throws(() => transformation(() => {}, null));
+    err = t.throws(() => transcurse(() => {}, null));
     t.true(err instanceof TranscurseError);
 });
 
 test("transcurse(transcurse)", t => {
-    let a = transformation(c => c.val + 1);
-    let result = transformation(a);
+    let a = transcurse(c => c.val + 1);
+    let result = transcurse(a);
     t.is(result.apply(1), 2);
-    let b = transformation(c => 1 + c.next(c.val), result);
+    let b = transcurse(c => 1 + c.next(c.val), result);
     t.is(b.apply(1), 3);
 });

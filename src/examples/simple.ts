@@ -1,16 +1,16 @@
-import {transformation, Transforms} from "../lib";
+import {transcurse, Transcurses} from "../lib";
 
 class ExampleObject {
     constructor(public exampleProperty: number) {
     }
 }
 
-export const transform = transformation(c => {
+export const transform = transcurse(c => {
     if (c.val && c.val.type === "ExampleObject") {
         return new ExampleObject(c.val.value);
     }
     return c.next(c.val);
-}, Transforms.structural);
+}, Transcurses.structural);
 
 export const exampleInput = {
     property1: {

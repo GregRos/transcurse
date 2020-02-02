@@ -1,8 +1,8 @@
 import {TranscurseError} from "./errors";
-import {Writable} from "stream";
 
 /**
- * An object used to control the transformation, such as by moving to the next step.
+ * An object used to control the transformation, such as by moving to the next
+ * step.
  */
 export interface TranscurseControl<TIn = any, TOut = any> {
 
@@ -36,33 +36,31 @@ export interface TranscurseControl<TIn = any, TOut = any> {
 export interface TranscurseStep<TIn = any, TOut = any> {
     /**
 	 *
-	 * @param ctx An object containing the current value and functions to control the process.
+	 * @param ctx An object containing the current value and functions to
+	 *     control the process.
 	 */
     (ctx: TranscurseControl<TIn, TOut>): TOut;
 }
 
 /**
- * A function that transforms.ts `TIn` to `TOut`
+ * The compiled result of a Transcurse transformation. A function that converts
+ * a `TIn` to `TOut`.
  */
 export interface TranscurseFunction<TIn = any, TOut = any> {
     (input: TIn): TOut;
 }
 
-
-
 type Writeable<T> = { -readonly [P in keyof T]: T[P] };
 
 function wrapStep(step: TranscurseStep, prevNext: any, isLast: boolean) {
     return function(this: TranscurseControl, value?: any) {
-        if (arguments.length === 0) {
-            value = this.val;
-        }
-        this.next = prevNext;
         const writable = this as Writeable<TranscurseControl>;
-        writable.val = value;
+        if (arguments.length > 0) {
+            writable.val = value;
+        }
+        writable.next = prevNext;
         writable.isLast = isLast;
-        const blah = step(this);
-        return blah;
+        return step(this);
     };
 }
 
@@ -102,25 +100,25 @@ function compile(steps: TranscurseStep[]): TranscurseFunction {
 
     return x => {
         let ctx = createTransformCtx(new Set([x]));
-        let blah = ctx.next(x);
-        return blah;
+        return ctx.next(x);
     };
 }
 
 /**
- * A transcurse transformation or transformation step function.
+ * A transcurse transformation, or a transformation step.
  */
-export type LikeTranscurseStep<TIn, TOut> = TranscurseStep<TIn, TOut> | Transformation<TIn, TOut>;
+export type LikeTranscurseStep<TIn, TOut> = TranscurseStep<TIn, TOut> | Transcurse<TIn, TOut>;
 
 /**
- * A recursive transformation for objects of type `TFrom` to objects of type `TTo`.
+ * A recursive transformation for objects of type `TFrom` to objects of type
+ * `TTo`.
  */
-export class Transformation<TIn = any, TOut = any> {
+export class Transcurse<TIn = any, TOut = any> {
     private _compiled: TranscurseFunction<TIn, TOut>;
     private readonly _steps: TranscurseStep<TIn, TOut>[];
 
     constructor(steps: LikeTranscurseStep<TIn, TOut>[] = []) {
-        let flatSteps = [].concat.apply([], steps.map(x => x instanceof Transformation ? x._steps : [x]));
+        let flatSteps = [].concat.apply([], steps.map(x => x instanceof Transcurse ? x._steps : [x]));
         for (let step of flatSteps) {
             if (typeof step !== "function") {
                 throw new TranscurseError("One of the arguments wasn't a Transformation or a function.");
@@ -131,12 +129,13 @@ export class Transformation<TIn = any, TOut = any> {
 
     /**
      * Returns a new transformation with additional steps `steps`.
-     * `steps` will be applied in immediately before `this`, with decreasing precedence, from right to left.
+     * `steps` will be applied in immediately before `this`, with decreasing
+     * precedence, from right to left.
      * @param steps
      */
-    step(...steps: LikeTranscurseStep<TIn, TOut>[]): Transformation<TIn, TOut> {
+    step(...steps: LikeTranscurseStep<TIn, TOut>[]): Transcurse<TIn, TOut> {
         if (steps.length === 0) return this;
-        return new Transformation([...this._steps, ...steps.reverse()]);
+        return new Transcurse([...this._steps, ...steps.reverse()]);
     }
 
     /**
@@ -156,9 +155,10 @@ export class Transformation<TIn = any, TOut = any> {
 }
 
 /**
- * Creates a new Transformation instance, with the given steps, evaluated right to left.
+ * Creates a new Transformation instance, with the given steps, evaluated right
+ * to left.
  * @param steps
  */
-export function transformation<TIn = any, TOut = any>(...steps: LikeTranscurseStep<TIn, TOut>[]) {
-    return new Transformation(steps.reverse());
+export function transcurse<TIn = any, TOut = any>(...steps: LikeTranscurseStep<TIn, TOut>[]) {
+    return new Transcurse(steps.reverse());
 }

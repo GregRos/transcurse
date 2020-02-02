@@ -1,13 +1,13 @@
-import {TranscurseStep, transformation, Transformation} from "./basics";
+import {TranscurseStep, transcurse, Transcurse} from "./basics";
 
 /**
  * A namespace for different standard transformations.
  */
-export namespace Transforms {
+export namespace Transcurses {
     /**
-     * A structural transformation that recurses over array elements and object properties.
+     * A structural transformation that recurses over array elements and own object properties.
      */
-    export const structural = transformation(c => {
+    export const structural = transcurse(c => {
         const {val} = c;
         if (!val || typeof val !== "object") return c.next(val);
         if (Array.isArray(val)) {
@@ -23,6 +23,6 @@ export namespace Transforms {
     /**
      * The identity transformation.
      */
-    export const id = transformation();
+    export const id = transcurse();
 
 }

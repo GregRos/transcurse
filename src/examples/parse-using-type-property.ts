@@ -1,4 +1,4 @@
-import {transformation, Transforms} from "../lib";
+import {transcurse, Transcurses} from "../lib";
 
 class ExampleObject {
     constructor(public blah: string) {
@@ -8,27 +8,35 @@ class ExampleObject {
     testProperty = 52;
 }
 
-export const exampleTransform = transformation(c => {
+export let exampleTransform = Transcurses.structural;
+
+exampleTransform = exampleTransform.step(c => {
     if (c.val.type === "number") {
         return c.val.num;
     }
-    return c.next(c.val);
-}, c => {
+    return c.next();
+});
+
+exampleTransform = exampleTransform.step(c => {
     if (c.val.type === "string") {
         return c.val.str;
     }
-    return c.next(c.val);
-}, c => {
+    return c.next();
+});
+
+exampleTransform = exampleTransform.step(c => {
     if (c.val.type === "ExampleObject") {
         return new ExampleObject(c.val.arg);
     }
-    return c.next(c.val);
-}, c => {
+    return c.next();
+});
+
+exampleTransform = exampleTransform.step(c => {
     if (c.val.type === "nested") {
         return c.recurse(c.val.nested);
     }
-    return c.next(c.val);
-}, Transforms.structural);
+    return c.next();
+});
 
 export const exampleInput = {
     a: {
