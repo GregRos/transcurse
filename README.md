@@ -24,33 +24,21 @@ npm install --save transcurse
 
 ## Example
 
-Creating a transformation with a fallback that will recurse into each array element and sub-property:
+Let's say you want a transformation that recurses into object properties and array elements, and increments all numbers by 1 and addes `"abc"` to the end of all strings.
 
 ```ts
-import { Transcurses } from "transcurse";
+import {Transcurses} from "transcurse";
 
-const example = Transcurses.structural.step(c => {
-    if (typeof c.val === "number") return c.val + 1;
-    return c.next();
+const transform = Transcurses.structural.pre(c => {
+    return typeof c.val === "number" ? c.val + 1 : c.next();
+}, c => {
+    return typeof c.val === "string" ? c.val + "abc" : c.next();
 })
 ```
 
+The `structural` transform provides a fallback that will recurse into sub-properties of objects. In the transformation step, `c.next()` will invoke the following transformation steps.
 
-
-
-
-```ts
-import { transcurse } from "transcurse";
-
-export const transform = transcurse(c => {
-    if (c.val && c.val.type === "ExampleObject") {
-        return new ExampleObject(c.val.value);
-    }
-    return c.next(c.val);
-});
-```
-
-Creating one that will 
+Calling `c.next()` on the last transformation step will enter the fallback part of the transformation.
 
 ## Transformation step
 
@@ -60,8 +48,8 @@ Each transformation step is a function that takes a `context` parameter. This pa
 interface TranscurseControl {
 	readonly val: any;
     recurse(nested): any;
-    next(value): any;
-    readonly isLast: boolean;
+	next(value): any;
+	readonly isLast: boolean;
 }
 ```
 
