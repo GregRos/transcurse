@@ -1,6 +1,5 @@
 import test from "ava";
-import {transcurse} from "../../lib";
-import {TranscurseError, Transcurse} from "../../lib";
+import {TranscurseError, Transcurse, transcurse} from "../../lib";
 test("empty transcurse", t => {
     const freshEmpty = new Transcurse();
     t.is(freshEmpty.apply(500), 500);

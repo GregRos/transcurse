@@ -1,6 +1,6 @@
 {
   "name": "transcurse",
-  "version": "0.1.0-beta",
+  "version": "0.1.1-beta",
   "description": "Library for recursive transformations",
   "main": "index.js",
   "repository": "https://www.github.com/GregRos/transcurse",
