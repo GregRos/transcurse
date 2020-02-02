@@ -4,7 +4,7 @@ import { isObjectLike } from "lodash";
 
 const structural = Transcurses.structural;
 test("scalars", t => {
-    const my = structural.step(c => c.next(c.val));
+    const my = structural.pre(c => c.next(c.val));
     t.is(my.apply(5), 5);
     t.is(my.apply("abc"), "abc");
     t.is(my.apply(null), null);
@@ -14,17 +14,17 @@ test("scalars", t => {
 });
 
 test("array", t => {
-    const my = structural.step(c => Array.isArray(c.val) ? c.next() : typeof c.val);
+    const my = structural.pre(c => Array.isArray(c.val) ? c.next() : typeof c.val);
     t.deepEqual(my.apply([1, "abc", {}]), ["number", "string", "object"]);
 });
 
 test("nested array", t => {
-    const my = structural.step(c => Array.isArray(c.val) ? c.next() : typeof c.val);
+    const my = structural.pre(c => Array.isArray(c.val) ? c.next() : typeof c.val);
     t.deepEqual(my.apply([[1], [2]]), [["number"], ["number"]]);
 });
 
 test("object", t => {
-    const my = structural.step(c => isObjectLike(c.val) ? c.next() : typeof c.val);
+    const my = structural.pre(c => isObjectLike(c.val) ? c.next() : typeof c.val);
     t.deepEqual(my.apply({
         a: "abc",
         b: "def"
@@ -35,7 +35,7 @@ test("object", t => {
 });
 
 test("nested object/array", t => {
-    const my = structural.step(c => isObjectLike(c.val) ? c.next() : typeof c.val);
+    const my = structural.pre(c => isObjectLike(c.val) ? c.next() : typeof c.val);
     t.deepEqual(my.apply({
         a: {
             b: [1]

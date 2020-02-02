@@ -1,0 +1,16 @@
+language: node_js
+branches:
+  only:
+    - master
+cache:
+  yarn: true
+  directories:
+    - node_modules
+install:
+  - yarn install
+script:
+  - yarn run build:clean
+  - yarn run test
+  - yarn run codecov
+node_js:
+  - "8.9"

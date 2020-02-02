@@ -10,28 +10,28 @@ class ExampleObject {
 
 export let exampleTransform = Transcurses.structural;
 
-exampleTransform = exampleTransform.step(c => {
+exampleTransform = exampleTransform.pre(c => {
     if (c.val.type === "number") {
         return c.val.num;
     }
     return c.next();
 });
 
-exampleTransform = exampleTransform.step(c => {
+exampleTransform = exampleTransform.pre(c => {
     if (c.val.type === "string") {
         return c.val.str;
     }
     return c.next();
 });
 
-exampleTransform = exampleTransform.step(c => {
+exampleTransform = exampleTransform.pre(c => {
     if (c.val.type === "ExampleObject") {
         return new ExampleObject(c.val.arg);
     }
     return c.next();
 });
 
-exampleTransform = exampleTransform.step(c => {
+exampleTransform = exampleTransform.pre(c => {
     if (c.val.type === "nested") {
         return c.recurse(c.val.nested);
     }

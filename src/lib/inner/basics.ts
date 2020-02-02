@@ -133,7 +133,7 @@ export class Transcurse<TIn = any, TOut = any> {
      * precedence, from right to left.
      * @param steps
      */
-    step(...steps: LikeTranscurseStep<TIn, TOut>[]): Transcurse<TIn, TOut> {
+    pre(...steps: LikeTranscurseStep<TIn, TOut>[]): Transcurse<TIn, TOut> {
         if (steps.length === 0) return this;
         return new Transcurse([...this._steps, ...steps.reverse()]);
     }

@@ -137,7 +137,7 @@ test("context object remains the same", t => {
 
 test("add adds steps in reverse precedence", t => {
     let empty = transcurse();
-    let double = empty.step(
+    let double = empty.pre(
         c => c.next(c.val + 1),
         c => c.val
     );
@@ -146,7 +146,7 @@ test("add adds steps in reverse precedence", t => {
 
 test("empty and is idempotent", t => {
     let empty = transcurse();
-    t.is(empty, empty.step());
+    t.is(empty, empty.pre());
 });
 
 test("catches non-function argument", t => {
