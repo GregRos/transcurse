@@ -1,0 +1,4 @@
+import {transcurse, Standard} from "../lib";
+export const numericStringToNumber = transcurse(x => {
+    return typeof x.val === "string" ? parseFloat(x.val) : x.next();
+}, Standard.structural);

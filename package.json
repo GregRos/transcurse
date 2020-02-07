@@ -15,7 +15,8 @@
     "docs": "node dist/generate-docs/run.js",
     "lint": "tslint -p .",
     "lint:fix": "tslint -p . --fix",
-    "package:publish": "npm-run-all lint build:clean test && node dist/publish.js && (cd .publish; yarn publish)"
+    "package:build":  "npm-run-all lint build:clean test && node dist/publish.js",
+    "package:publish": "yarn run package:build && (cd .publish; yarn publish)"
   },
   "dependencies": {
   },

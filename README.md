@@ -27,13 +27,10 @@ npm install --save transcurse
 Let's say you want a transformation that recurses into object properties and array elements, and increments all numbers by 1 and addes `"abc"` to the end of all strings.
 
 ```ts
-import {Transcurses} from "transcurse";
-
-const transform = Transcurses.structural.pre(c => {
-    return typeof c.val === "number" ? c.val + 1 : c.next();
-}, c => {
-    return typeof c.val === "string" ? c.val + "abc" : c.next();
-})
+import {transcurse, Standard} from "transcurse"
+export const numericStringToNumber = transcurse(x => {
+    return typeof x.val === "string" ? parseFloat(x.val) : x.next();
+}, Standard.structural);
 ```
 
 The `structural` transform provides a fallback that will recurse into sub-properties of objects. In the transformation step, `c.next()` will invoke the following transformation steps.
@@ -42,18 +39,12 @@ Calling `c.next()` on the last transformation step will enter the fallback part 
 
 ## Transformation step
 
-Each transformation step is a function that takes a `context` parameter. This parameter gives the current state of the transformation, and has the following interface:
+Each transformation step is a function that takes a `ctrl` parameter and returns an output. This parameter lets you inspect and control the current step of the transformation. It lets you:
 
-```typescript
-interface TranscurseControl {
-	readonly val: any;
-    recurse(nested): any;
-	next(value): any;
-	readonly isLast: boolean;
-}
-```
+1. Inspect the current input being transformed. (`ctrl.val`)
+2. Execute the next step of the transformation. (`ctrl.next(v)`)
+3. Restart the transformation with a different input, usually a sub-value. (`ctrl.recurse(v)`)
+4. Determine if this is the last step of the transformation. (`ctrl.isLast`)
 
-This interface is supposed to be immutable from the point of view of the caller; you shouldn't mutate any of its properties.
+The step after the last step is an identity transformation.
 
-1. `val` allows access the current value being transformed.
-2. `recurse` will perform recursion, invoking the entire transformation, including the current step on a new input.
