@@ -27,10 +27,10 @@ npm install --save transcurse
 Let's say you want a transformation that recurses into object properties and array elements, and increments all numbers by 1 and addes `"abc"` to the end of all strings.
 
 ```ts
-import {transcurse, Standard} from "transcurse"
+import {transcurse, Transcurses} from "transcurse"
 export const numericStringToNumber = transcurse(x => {
     return typeof x.val === "string" ? parseFloat(x.val) : x.next();
-}, Standard.structural);
+}, Transcurses.structural);
 ```
 
 The `structural` transform provides a fallback that will recurse into sub-properties of objects. In the transformation step, `c.next()` will invoke the following transformation steps.

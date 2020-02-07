@@ -1,4 +1,4 @@
-import {transcurse, Standard} from "../lib";
+import {transcurse, Transcurses} from "../lib";
 class ExampleObject {
     constructor(public blah: string) {
 
@@ -7,7 +7,7 @@ class ExampleObject {
     testProperty = 52;
 }
 
-export let exampleTransform = Standard.structural;
+export let exampleTransform = Transcurses.structural;
 
 exampleTransform = exampleTransform.pre(c => {
     if (c.val.type === "number") {
