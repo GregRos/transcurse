@@ -12,10 +12,11 @@ export interface TranscurseControl<TIn = any, TOut = any> {
     readonly val: TIn;
 
     /**
-	 * Restarts the entire transformation with `subValue` as a target.
-	 * @param subValue The value to transform.
-	 */
-    recurse(subValue: TIn): TOut;
+     * Restarts the entire transformation with `subValue` as a target.
+     * @param subValue The value to transform.
+     * @param key The key of the value was found under, if any.
+     */
+    recurse(subValue: TIn, key ?: string | symbol | number): TOut;
 
     /**
 	 * Invokes the next step of the transformation, with `value` as a target.
@@ -27,7 +28,17 @@ export interface TranscurseControl<TIn = any, TOut = any> {
      * Whether this is the last transformation step, with the next step being
      * the defualt identity transformation.
      */
-    readonly isLast: boolean;
+    isLast: boolean;
+
+    /**
+     * The key the current value was found under, if any.
+     */
+     key: any;
+
+    /**
+     * Custom state.
+     */
+    state: any;
 }
 
 /**
@@ -60,6 +71,7 @@ function wrapStep(step: TranscurseStep, prevNext: any, isLast: boolean) {
         }
         writable.next = prevNext;
         writable.isLast = isLast;
+
         return step(this);
     };
 }
@@ -77,13 +89,14 @@ function compile(steps: TranscurseStep[]): TranscurseFunction {
 
     let createTransformCtx = (set: Set<any>) => {
         return {
-            recurse(obj) {
+            recurse(obj, key) {
                 if (set.has(obj)) {
                     throw new TranscurseError("Transformation has tried to do circular recursion.");
                 }
                 set.add(obj);
                 try {
                     let ctx = createTransformCtx(set);
+                    ctx.key = key;
                     return ctx.next(obj);
                 } finally {
                     set.delete(obj);
@@ -93,7 +106,8 @@ function compile(steps: TranscurseStep[]): TranscurseFunction {
                 return firstSkip.call(this, x);
             },
             val: null,
-            isLast: false
+            isLast: false,
+            state: {}
         } as TranscurseControl;
 
     };

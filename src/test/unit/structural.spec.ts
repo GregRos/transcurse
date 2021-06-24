@@ -1,10 +1,9 @@
 import test from "ava";
-import {Transcurses} from "../../lib";
-import { isObjectLike } from "lodash";
+import {isObjectLike} from "lodash";
+import {cloneDeep} from "../../lib";
 
-const structural = Transcurses.structural;
 test("scalars", t => {
-    const my = structural.pre(c => c.next(c.val));
+    const my = cloneDeep.pre(c => c.next(c.val));
     t.is(my.apply(5), 5);
     t.is(my.apply("abc"), "abc");
     t.is(my.apply(null), null);
@@ -14,28 +13,28 @@ test("scalars", t => {
 });
 
 test("array", t => {
-    const my = structural.pre(c => Array.isArray(c.val) ? c.next() : typeof c.val);
-    t.deepEqual(my.apply([1, "abc", {}]), ["number", "string", "object"]);
+    const my = cloneDeep.pre(c => Array.isArray(c.val) ? c.next() : `${String(c.key)} ${typeof c.val}`);
+    t.deepEqual(my.apply([1, "abc", {}]), ["0 number", "1 string", "2 object"]);
 });
 
 test("nested array", t => {
-    const my = structural.pre(c => Array.isArray(c.val) ? c.next() : typeof c.val);
-    t.deepEqual(my.apply([[1], [2]]), [["number"], ["number"]]);
+    const my = cloneDeep.pre(c => Array.isArray(c.val) ? c.next() : `${String(c.key)} ${typeof c.val}`);
+    t.deepEqual(my.apply([[1], [2]]), [["0 number"], ["0 number"]]);
 });
 
 test("object", t => {
-    const my = structural.pre(c => isObjectLike(c.val) ? c.next() : typeof c.val);
+    const my = cloneDeep.pre(c => isObjectLike(c.val) ? c.next() : `${String(c.key)} ${typeof c.val}`);
     t.deepEqual(my.apply({
         a: "abc",
         b: "def"
     }), {
-        a: "string",
-        b: "string"
+        a: "a string",
+        b: "b string"
     });
 });
 
 test("nested object/array", t => {
-    const my = structural.pre(c => isObjectLike(c.val) ? c.next() : typeof c.val);
+    const my = cloneDeep.pre(c => isObjectLike(c.val) ? c.next() : `${String(c.key)} ${typeof c.val}`);
     t.deepEqual(my.apply({
         a: {
             b: [1]
@@ -43,7 +42,7 @@ test("nested object/array", t => {
         b: []
     }), {
         a: {
-            b: ["number"]
+            b: ["0 number"]
         },
         b: []
     });

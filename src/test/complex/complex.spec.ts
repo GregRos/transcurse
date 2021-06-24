@@ -1,5 +1,5 @@
 import test from "ava";
-import {transcurse, Transcurses} from "../../lib";
+import {transcurse} from "../../lib";
 import {exampleInput, exampleOutput, exampleTransform} from "../../examples/parse-using-type-property";
 import {numericStringToNumber} from "../../examples/numeric-string-to-number";
 

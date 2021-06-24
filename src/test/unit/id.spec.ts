@@ -1,8 +1,7 @@
 import test from "ava";
-import {Transcurses} from "../../lib";
-
+import {id} from "../../lib";
 test("works", t => {
-    const id = Transcurses.id;
-    t.is(id.apply(5), 5);
-    t.is(id.apply(100), 100);
+    const idt = id;
+    t.is(idt.apply(5), 5);
+    t.is(idt.apply(100), 100);
 });

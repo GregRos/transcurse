@@ -37,7 +37,7 @@ test("single transform recurse", t => {
     const single = transcurse(c => {
         t.pass();
         if (c.val === 5) return 9;
-        return c.recurse(5);
+        return c.recurse(5, null);
     });
 
     t.is(single.apply(10), 9);
@@ -89,7 +89,7 @@ test("double transform recurse", t => {
         return c.next(`${c.val}a`);
     }, c => {
         t.true(c.isLast);
-        if (c.val.length < 3) return c.recurse(`${c.val}b`);
+        if (c.val.length < 3) return c.recurse(`${c.val}b`, null);
         return c.val;
     });
     t.is(double.apply(""), "aba");
@@ -99,7 +99,7 @@ test("recursion into identical value errors", t => {
     let count = 0;
     const single = transcurse(c => {
         count++;
-        return c.recurse(c.val);
+        return c.recurse(c.val, null);
     });
     let err = t.throws(() => single.apply(1));
     t.true(err instanceof TranscurseError);
@@ -110,8 +110,8 @@ test("recursion into identical value errors deeper", t => {
     let count = 0;
     let single = transcurse(c => {
         count++;
-        if (c.val === 4) return c.recurse(c.val / 2);
-        return c.recurse(c.val + 1);
+        if (c.val === 4) return c.recurse(c.val / 2, null);
+        return c.recurse(c.val + 1, null);
     });
     let err = t.throws(() => single.apply(1));
     t.true(err instanceof TranscurseError);
@@ -126,7 +126,7 @@ test("context object remains the same", t => {
     }, c => {
         ctxts[c.val].push(ctxts);
         if (c.val === 1) return 0;
-        return c.recurse(c.val + 1);
+        return c.recurse(c.val + 1, undefined);
     });
 
     t.is(single.apply(0), 0);

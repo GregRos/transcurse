@@ -1,4 +1,4 @@
-import {transcurse, Transcurses} from "../lib";
+import {cloneDeep, transcurse} from "../lib";
 class ExampleObject {
     constructor(public blah: string) {
 
@@ -7,7 +7,7 @@ class ExampleObject {
     testProperty = 52;
 }
 
-export let exampleTransform = Transcurses.structural;
+export let exampleTransform = cloneDeep;
 
 exampleTransform = exampleTransform.pre(c => {
     if (c.val.type === "number") {
