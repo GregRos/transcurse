@@ -58,7 +58,7 @@ export interface TranscurseStep<TIn = any, TOut = any> {
  * a `TIn` to `TOut`.
  */
 export interface TranscurseFunction<TIn = any, TOut = any> {
-    (input: TIn): TOut;
+    (input: TIn, state?: any): TOut;
 }
 
 type Writeable<T> = { -readonly [P in keyof T]: T[P] };
@@ -95,9 +95,10 @@ function compile(steps: TranscurseStep[]): TranscurseFunction {
                 }
                 set.add(obj);
                 try {
-                    let ctx = createTransformCtx(set);
-                    ctx.key = key;
-                    return ctx.next(obj);
+                    let newCtx = createTransformCtx(set);
+                    newCtx.state = this.state;
+                    newCtx.key = key;
+                    return newCtx.next(obj);
                 } finally {
                     set.delete(obj);
                 }
@@ -112,8 +113,9 @@ function compile(steps: TranscurseStep[]): TranscurseFunction {
 
     };
 
-    return x => {
+    return (x, state) => {
         let ctx = createTransformCtx(new Set([x]));
+        ctx.state = state;
         return ctx.next(x);
     };
 }
@@ -155,16 +157,17 @@ export class Transcurse<TIn = any, TOut = any> {
     /**
      * Compiles the transformation into a function, caching it, and returns it.
      */
-    compile(): (input: TIn) => TOut {
+    compile(): TranscurseFunction<TIn, TOut> {
         return this._compiled || (this._compiled = compile(this._steps));
     }
 
     /**
      * Applies the transformation on `input`.
      * @param input The input value.
+     * @param state The state object, if any.
      */
-    apply(input: TIn): TOut {
-        return this.compile()(input);
+    apply(input: TIn, state?: any): TOut {
+        return this.compile()(input, state);
     }
 }
 
